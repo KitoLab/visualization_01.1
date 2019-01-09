@@ -1,0 +1,78 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <title>D3.js(Force Layout)の練習</title>
+  <style>
+  </style>
+</head>
+<body>
+
+  <script src="http://d3js.org/d3.v3.js" charset="utf-8"></script>
+
+<!-- ここで、raw_to_data.ipynbで出力したデータを読み込む -->
+  <script src="channel_0_label.json" charset="utf-8"></script>
+
+  <script>
+    var w = 800;
+    var h = 800;
+    var nodes = JSON.parse(node)
+    var links = JSON.parse(link)
+    var force = d3.layout.force()
+                 .nodes(nodes)
+                 .links(links)
+                 .size([w, h])
+                 .linkStrength(0.1)
+                 .friction(0.9)
+                 .distance(100)
+                 .charge(-150)
+                 .gravity(0.1)
+                 .theta(0.8)
+                 .alpha(0.1)
+                 .start();
+    var svg = d3.select("body").append("svg").attr({width:w, height:h});
+    var link = svg.selectAll("line")
+                  .data(links)
+                  .enter()                      //ただのgetterメソッド
+                  .append("line")
+                  .style({stroke: "#ccc",
+                          "stroke-width": 1});
+    var node = svg.selectAll("circle")
+                  .data(nodes)    //nodesデータにバインド
+                  .enter()        //
+                  .append("circle")
+                  .attr({r: 20,
+                         opacity: 0.8})
+                  .style({fill: "red"}) //赤色に塗る
+                  .call(force.drag);  //force.drag(node)の呼び出し
+    // nodeのラベル周りの設定
+    var label = svg.selectAll('text')
+        .data(nodes)
+        .enter()
+        .append('text')
+        .attr({
+            "text-anchor":"middle",
+            "fill":"white",
+            "font-size": "6px"
+        })
+        .text(function(data) { return data.label; });
+
+    //力学計算が行われるたびに呼ばれるtickイベント
+    force.on("tick", function() {
+      link.attr({x1: function(d) { return d.source.x; },
+                 y1: function(d) { return d.source.y; },
+                 x2: function(d) { return d.target.x; },
+                 y2: function(d) { return d.target.y; }});
+      node.attr({cx: function(d) { return d.x; },
+                 cy: function(d) { return d.y; }});
+
+       // labelも追随するように
+        label.attr({
+            x: function(data) { return data.x;},
+            y: function(data) { return data.y;}
+        });
+    });
+
+  </script>
+</body>
+</html>
